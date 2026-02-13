@@ -10,8 +10,37 @@ export interface CarSpecs {
 }
 
 export type AirbagStatus = 'None' | 'Partial' | 'Optimal';
+export type ThemeMode = 'dark' | 'light';
+export type AIModelType = 'gemini-3-pro-preview' | 'gemini-3-flash-preview';
+export type UnitSystem = 'metric' | 'imperial';
+export type RoadCondition = 'Dry' | 'Wet' | 'Icy' | 'Gravel';
+export type OccupantAge = 'Adult' | 'Child' | 'Senior';
+export type SeatPosition = 'Upright' | 'Reclined';
+export type TireCondition = 'New' | 'Worn' | 'Bald';
 
-export interface CrashParams {
+export interface AppSettings {
+  // Existing
+  theme: ThemeMode;
+  aiModel: AIModelType;
+  units: UnitSystem;
+  analysisDepth: 'Standard' | 'Forensic';
+  occupantCount: number;
+  roadCondition: RoadCondition;
+  timeOfDay: 'Day' | 'Night';
+  verbosity: 'Technical' | 'Casual';
+  showPhysicsEquations: boolean;
+  
+  // 7 New Settings
+  occupantAge: OccupantAge;
+  brakingEfficiency: number; // 0 - 100%
+  seatPositioning: SeatPosition;
+  tireStatus: TireCondition;
+  airbagTech: 'Legacy' | 'Modern' | 'Adaptive';
+  cargoMassKg: number;
+  impactMaterial: 'Concrete' | 'Steel' | 'Wood' | 'Earth';
+}
+
+export interface CrashParams extends Partial<AppSettings> {
   speedKph: number;
   impactAngle: number; // 0 to 90
   objectOfImpact: 'Vehicle' | 'Wall' | 'Tree/Pole' | 'Ditch';

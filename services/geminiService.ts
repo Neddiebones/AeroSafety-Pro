@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { CarSpecs, CrashParams, AnalysisResult } from "../types";
+import { CarSpecs, CrashParams, AnalysisResult, AIModelType } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -84,35 +84,54 @@ export const getCarSpecifications = async (brand: string, model: string, year: n
   return JSON.parse(response.text);
 };
 
-export const analyzeSurvival = async (car: CarSpecs, params: CrashParams): Promise<AnalysisResult> => {
+export const analyzeSurvival = async (
+  car: CarSpecs, 
+  params: CrashParams, 
+  model: AIModelType = 'gemini-3-pro-preview'
+): Promise<AnalysisResult> => {
   const prompt = `
-    Perform a high-fidelity crash survivability and clinical trauma analysis.
+    Perform a high-fidelity crash survivability and clinical trauma analysis using the following simulation parameters.
     
     VEHICLE: ${car.year} ${car.brand} ${car.model}
-    SPECS: ${car.weightKg}kg, Rating: ${car.safetyRating}, Features: ${car.safetyFeatures.join(', ')}
+    BASE SPECS: ${car.weightKg}kg, Rating: ${car.safetyRating}, Features: ${car.safetyFeatures.join(', ')}
     
-    CRASH PARAMETERS:
-    - Speed: ${params.speedKph} km/h
-    - Angle: ${params.impactAngle}°
+    ADVANCED ENVIRONMENTAL & PHYSICAL FACTORS:
+    - Road Condition: ${params.roadCondition || 'Dry'}
+    - Time of Day: ${params.timeOfDay || 'Day'}
+    - Tire Condition: ${params.tireStatus || 'New'}
+    - Braking Intervention Efficiency: ${params.brakingEfficiency || 0}%
+    - Impact Surface Material: ${params.impactMaterial || 'Concrete'}
+    - Additional Cargo Mass: ${params.cargoMassKg || 0}kg
+    
+    OCCUPANT BIOLOGY:
+    - Occupant Count: ${params.occupantCount || 1}
+    - Age Group: ${params.occupantAge || 'Adult'}
+    - Seat Position: ${params.seatPositioning || 'Upright'}
+    
+    RESTRICTION & SAFETY TECH:
+    - Airbag Deployment Status: ${params.airbagStatus}
+    - Airbag Technology Level: ${params.airbagTech || 'Modern'}
+    - Seatbelt Restraint: ${params.seatbeltUsed ? 'Active' : 'Not Used'}
+    
+    CRASH DYNAMICS:
+    - Impact Speed: ${params.speedKph} km/h
+    - Impact Angle: ${params.impactAngle}°
     - Object: ${params.objectOfImpact}
-    - Seatbelt: ${params.seatbeltUsed ? 'Yes' : 'No'}
-    - Airbag Deployment Status: ${params.airbagStatus} (None/Partial/Optimal)
     
-    Based on vehicular physics and trauma medicine, calculate:
-    1. Kinetic Energy (kJ) and peak G-Force.
-    2. Survival Probability (%).
+    Based on vehicular physics (Kinetic Energy = 0.5 * total_mass * v^2) and clinical trauma data:
+    1. Calculate Kinetic Energy (kJ) and peak G-Force (considering deceleration distance/material).
+    2. Survival Probability (%) based on occupant age resilience and safety tech.
     3. specificInjuries: YOU MUST ANALYZE THE RISK FOR:
        - Concussion (MTBI)
        - Traumatic Brain Injury (Brain Damage)
        - Bone Fractures (Broken Bones)
        - Internal Organ Damage
        For each, provide a label, chance (0-100), severity (Low/Moderate/High/Critical), and short description.
-       Note: Airbag status "${params.airbagStatus}" significantly impacts head and chest injury probability.
-    4. Detailed scientific reasoning.
+    4. Provide Detailed scientific reasoning for the prognosis.
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: model,
     contents: prompt,
     config: {
       tools: [{ googleSearch: {} }],
