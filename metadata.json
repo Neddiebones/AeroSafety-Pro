@@ -1,0 +1,5 @@
+{
+  "name": "AeroSafety Pro: Crash Survival Analyst",
+  "description": "An advanced physics-based tool that calculates survival probability in vehicle collisions using real-world car data and Gemini-powered safety analysis.",
+  "requestFramePermissions": []
+}
